@@ -1,4 +1,4 @@
-import css from "./NotePage.module.css";
+import css from "./NoteClient.module.css";
 import NoteListClient from "./Notes.client";
 import { fetchNotes } from "@/lib/api";
 import {
