@@ -9,7 +9,12 @@ export const metadata: Metadata = {
   description: 'Notes made simple',
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+interface RootLayoutProps {
+  children: React.ReactNode;
+  modal?: React.ReactNode; 
+}
+
+export default function RootLayout({ children, modal }: RootLayoutProps) {
   return (
     <html lang="en">
       <body>
@@ -17,9 +22,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <Header />
           {children}
           <Footer />
-          <div id="modal-root"></div>
+          {modal}
         </Providers>
       </body>
     </html>
   );
 }
+
