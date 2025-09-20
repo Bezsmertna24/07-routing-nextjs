@@ -3,12 +3,13 @@ import Link from "next/link";
 
 const tags: string[] = [
   "All",
-  "Personal",
   "Work",
-  "Shopping",
-  "Meeting",
   "Todo",
+  "Personal",
+  "Meeting",
+  "Shopping",
 ];
+
 
 export default function SideBarNotes() {
   return (

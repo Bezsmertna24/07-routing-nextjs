@@ -1,30 +1,50 @@
-"use client";
+'use client';
+
 import SearchBox from "@/components/SearchBox/SearchBox";
-import css from "./App.module.css";
+import css from "./NoteClient.module.css";
 import { useState, useEffect } from "react";
 import { useDebounce } from "use-debounce";
 import { fetchNotes } from "@/lib/api";
-import { useQuery, keepPreviousData } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import Pagination from "@/components/Pagination/Pagination";
 import NoteList from "@/components/NoteList/NoteList";
 import Modal from "@/components/Modal/Modal";
 import NoteForm from "@/components/NoteForm/NoteForm";
+import { Note } from "@/types/note";
 
-export default function App() {
-  const [searchText, setSearchText] = useState ('');
+interface NotesApiResponse {
+  notes: Note[];
+  totalPages: number;
+}
+
+interface NotesListClientProps {
+  tag: string;
+}
+
+export default function NotesListClient({ tag }: NotesListClientProps) {
+  const [searchText, setSearchText] = useState('');
   const [debouncedText] = useDebounce(searchText, 500);
   const [page, setPage] = useState(1);
   const [isModalOpen, setModalOpen] = useState(false);
+
   const openModal = () => setModalOpen(true);
   const closeModal = () => setModalOpen(false);
 
+  // Скидаємо сторінку при зміні тегу або пошуку
   useEffect(() => {
     setPage(1);
-  }, [debouncedText]);
+  }, [tag, debouncedText]);
 
-  const { data, isLoading, isError, error } = useQuery({
-    queryKey: ['notes', debouncedText, page],
-    queryFn: () => fetchNotes(page, debouncedText || ''),
+  // Початкові дані для placeholderData
+  const keepPreviousData: NotesApiResponse = {
+    notes: [],
+    totalPages: 0
+  };
+
+  // Використовуємо useQuery з fetchNotes(page, search, tag)
+  const { data, isLoading, isError, error } = useQuery<NotesApiResponse>({
+    queryKey: ['notes', tag, debouncedText, page],
+    queryFn: () => fetchNotes(page, debouncedText || '', tag),
     placeholderData: keepPreviousData,
   });
 
@@ -35,11 +55,7 @@ export default function App() {
       <header className={css.toolbar}>
         <SearchBox searchText={searchText} onUpdate={setSearchText} />
         {totalPages > 1 && (
-          <Pagination
-            pageCount={totalPages}
-            currentPage={page}
-            onPageChange={setPage}
-          />
+          <Pagination pageCount={totalPages} currentPage={page} onPageChange={setPage} />
         )}
         <button className={css.button} onClick={openModal}>
           Create note +
@@ -49,13 +65,9 @@ export default function App() {
       <main>
         {isLoading && <p>Loading...</p>}
         {isError && <p>Error: {(error as Error).message}</p>}
-        {!isLoading && !isError && data?.notes?.length === 0 && (
-          <p>No notes found</p>
-        )}
-        {data?.notes && data.notes.length > 0 && (
-          <NoteList notes={data.notes} />
-        )}
-
+        {!isLoading && !isError && data?.notes.length === 0 && <p>No notes found</p>}
+        {data?.notes && data.notes.length > 0 && <NoteList notes={data.notes} />}
+        
         {isModalOpen && (
           <Modal onClose={closeModal}>
             <NoteForm onClose={closeModal} />
@@ -65,3 +77,6 @@ export default function App() {
     </div>
   );
 }
+
+
+
